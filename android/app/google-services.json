@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "993121206813",
+    "project_id": "zenzith-a4145",
+    "storage_bucket": "zenzith-a4145.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:993121206813:android:c8a5e618b563e2e0217cf4",
+        "android_client_info": {
+          "package_name": "com.zenzith.zenzith_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhPobtqNUX0E3udTNehJwXCbrSBEombyc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
