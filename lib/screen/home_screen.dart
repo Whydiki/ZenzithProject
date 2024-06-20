@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: SizedBox(
           width: 105.w,
           height: 28.h,
-          child: Image.asset('images/instagram.jpg'),
+          child: Image.asset('images/zenzith.jpg'),
         ),
         leading: Image.asset('images/camera.jpg'),
         actions: [
