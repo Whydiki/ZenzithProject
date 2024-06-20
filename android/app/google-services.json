@@ -7,9 +7,66 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:993121206813:android:85a5910b5393743b217cf4",
+        "android_client_info": {
+          "package_name": "com.ZenZith.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhPobtqNUX0E3udTNehJwXCbrSBEombyc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:993121206813:android:c6cae7c726fc77e6217cf4",
+        "android_client_info": {
+          "package_name": "com.zenzith.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhPobtqNUX0E3udTNehJwXCbrSBEombyc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:993121206813:android:c8a5e618b563e2e0217cf4",
         "android_client_info": {
           "package_name": "com.zenzith.zenzith_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhPobtqNUX0E3udTNehJwXCbrSBEombyc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:993121206813:android:0579cd6a4955d7bb217cf4",
+        "android_client_info": {
+          "package_name": "zenzith.app"
         }
       },
       "oauth_client": [],

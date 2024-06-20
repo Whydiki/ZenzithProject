@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'zenzith-a4145.appspot.com',
     measurementId: 'G-LS7KJTNS7C',
   );
+
 }
