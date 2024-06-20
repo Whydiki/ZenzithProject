@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:project/data/firebase_service/firestor.dart';
+import 'package:project/data/firebase_service/firestore.dart';
 import 'package:project/data/firebase_service/storage.dart';
 
 import 'package:project/util/exeption.dart';
@@ -51,12 +51,12 @@ class Authentication {
 
           // get information with firestor
 
-          await Firebase_Firestor().CreateUser(
+          await Firebase_Firestore().CreateUser(
             email: email,
             username: username,
             bio: bio,
             profile: URL == ''
-                ? 'https://firebasestorage.googleapis.com/v0/b/instagram-8a227.appspot.com/o/person.png?alt=media&token=c6fcbe9d-f502-4aa1-8b4b-ec37339e78ab'
+                ? 'https://firebasestorage.googleapis.com/v0/b/zenzith-a4145.appspot.com/o/person.png?alt=media&token=828ec7fc-1e64-49d4-9d56-ed989988ec79'
                 : URL,
           );
         } else {

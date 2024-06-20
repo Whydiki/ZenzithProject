@@ -2,11 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:project/screen/add_screen.dart';
-import 'package:project/screen/explor_screen.dart';
 import 'package:project/screen/explore.dart';
-import 'package:project/screen/home.dart';
+import 'package:project/screen/home_screen.dart';
 import 'package:project/screen/profile_screen.dart';
-import 'package:project/screen/reelsScreen.dart';
+// import 'package:project/screen/reelsScreen.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class Navigations_Screen extends StatefulWidget {
@@ -89,7 +88,7 @@ class _Navigations_ScreenState extends State<Navigations_Screen> {
           HomeScreen(),
           ExploreScreen(),
           AddScreen(),
-          ReelScreen(),
+          // ReelScreen(),
           ProfileScreen(
             Uid: _auth.currentUser!.uid,
           ),

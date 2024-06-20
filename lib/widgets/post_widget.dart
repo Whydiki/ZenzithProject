@@ -1,7 +1,7 @@
 import 'package:date_format/date_format.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:project/data/firebase_service/firestor.dart';
+import 'package:project/data/firebase_service/firestore.dart';
 import 'package:project/util/image_cached.dart';
 import 'package:project/widgets/comment.dart';
 import 'package:project/widgets/like_animation.dart';
@@ -57,7 +57,7 @@ class _PostWidgetState extends State<PostWidget> {
         ),
         GestureDetector(
           onDoubleTap: () {
-            Firebase_Firestor().like(
+            Firebase_Firestore().like(
                 like: widget.snapshot['like'],
                 type: 'posts',
                 uid: user,
@@ -111,7 +111,7 @@ class _PostWidgetState extends State<PostWidget> {
                   LikeAnimation(
                     child: IconButton(
                       onPressed: () {
-                        Firebase_Firestor().like(
+                        Firebase_Firestore().like(
                             like: widget.snapshot['like'],
                             type: 'posts',
                             uid: user,

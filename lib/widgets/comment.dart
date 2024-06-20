@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
-import 'package:project/firebase_service/firestor.dart';
+import 'package:project/data/firebase_service/firestore.dart';
+// import 'package:project/firebase_service/firestore.dart';
 import 'package:project/util/image_cached.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -90,7 +91,7 @@ class _CommentState extends State<Comment> {
                           islodaing = true;
                         });
                         if (comment.text.isNotEmpty) {
-                          Firebase_Firestor().Comments(
+                          Firebase_Firestore().Comments(
                             comment: comment.text,
                             type: widget.type,
                             uidd: widget.uid,
