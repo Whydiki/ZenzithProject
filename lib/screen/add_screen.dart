@@ -13,18 +13,17 @@ int _currentIndex = 0;
 
 class _AddScreenState extends State<AddScreen> {
   late PageController pageController;
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     pageController = PageController();
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
-    super.dispose();
     pageController.dispose();
+    super.dispose();
   }
 
   onPageChanged(int page) {
@@ -37,6 +36,7 @@ class _AddScreenState extends State<AddScreen> {
     pageController.jumpToPage(page);
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -54,7 +54,7 @@ class _AddScreenState extends State<AddScreen> {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 300),
               bottom: 10.h,
-              right: _currentIndex == 0 ? 100.w : 150.w,
+              right: 100.w,
               child: Container(
                 width: 120.w,
                 height: 30.h,
@@ -76,20 +76,6 @@ class _AddScreenState extends State<AddScreen> {
                           fontWeight: FontWeight.w500,
                           color:
                           _currentIndex == 0 ? Colors.white : Colors.grey,
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        navigationTapped(1);
-                      },
-                      child: Text(
-                        'Reels',
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w500,
-                          color:
-                          _currentIndex == 1 ? Colors.white : Colors.grey,
                         ),
                       ),
                     ),
