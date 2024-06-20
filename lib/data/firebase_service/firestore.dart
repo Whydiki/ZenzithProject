@@ -1,154 +1,152 @@
-import 'dart:ffi';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:project/data/model/usermodel.dart';
-import 'package:project/util/exeption.dart';
+import 'package:project/util/exceptions.dart';
 import 'package:uuid/uuid.dart';
 
 class Firebase_Firestore {
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<bool> CreateUser({
+  Future<bool> createUser({
     required String email,
     required String username,
     required String bio,
     required String profile,
   }) async {
-    await _firebaseFirestore
-        .collection('users')
-        .doc(_auth.currentUser!.uid)
-        .set({
-      'email': email,
-      'username': username,
-      'bio': bio,
-      'profile': profile,
-      'followers': [],
-      'following': [],
-    });
-    return true;
+    try {
+      await _firebaseFirestore.collection('users').doc(_auth.currentUser!.uid).set({
+        'email': email,
+        'username': username,
+        'bio': bio,
+        'profile': profile,
+        'followers': [],
+        'following': [],
+      });
+      return true;
+    } catch (e) {
+      throw Exceptions('Failed to create user: ${e.toString()}');
+    }
   }
 
   Future<Usermodel> getUser({String? UID}) async {
     try {
-      final user = await _firebaseFirestore
-          .collection('users')
-          .doc(UID != null ? UID : _auth.currentUser!.uid)
-          .get();
-      final snapuser = user.data()!;
-      return Usermodel(
-          snapuser['bio'],
-          snapuser['email'],
-          snapuser['followers'],
-          snapuser['following'],
-          snapuser['profile'],
-          snapuser['username']);
-    } on FirebaseException catch (e) {
-      throw exceptions(e.message.toString());
+      final userDoc = await _firebaseFirestore.collection('users').doc(UID ?? _auth.currentUser!.uid).get();
+      if (userDoc.exists) {
+        final data = userDoc.data()!;
+        return Usermodel(
+          data['bio'],
+          data['email'],
+          data['followers'],
+          data['following'],
+          data['profile'],
+          data['username'],
+        );
+      } else {
+        throw Exceptions('User not found');
+      }
+    } catch (e) {
+      throw Exceptions('Failed to get user: ${e.toString()}');
     }
   }
 
-  Future<bool> CreatePost({
+  Future<bool> createPost({
     required String postImage,
     required String caption,
     required String location,
   }) async {
-    var uid = Uuid().v4();
-    DateTime data = new DateTime.now();
-    Usermodel user = await getUser();
-    await _firebaseFirestore.collection('posts').doc(uid).set({
-      'postImage': postImage,
-      'username': user.username,
-      'profileImage': user.profile,
-      'caption': caption,
-      'location': location,
-      'uid': _auth.currentUser!.uid,
-      'postId': uid,
-      'like': [],
-      'time': data
-    });
-    return true;
+    try {
+      var uid = Uuid().v4();
+      DateTime timestamp = DateTime.now();
+      Usermodel user = await getUser();
+      await _firebaseFirestore.collection('posts').doc(uid).set({
+        'postImage': postImage,
+        'username': user.username,
+        'profileImage': user.profile,
+        'caption': caption,
+        'location': location,
+        'uid': _auth.currentUser!.uid,
+        'postId': uid,
+        'like': [],
+        'time': timestamp,
+      });
+      return true;
+    } catch (e) {
+      throw Exceptions('Failed to create post: ${e.toString()}');
+    }
   }
 
-
-  Future<bool> Comments({
+  Future<bool> addComment({
     required String comment,
     required String type,
-    required String uidd,
-  }) async {
-    var uid = Uuid().v4();
-    Usermodel user = await getUser();
-    await _firebaseFirestore
-        .collection(type)
-        .doc(uidd)
-        .collection('comments')
-        .doc(uid)
-        .set({
-      'comment': comment,
-      'username': user.username,
-      'profileImage': user.profile,
-      'CommentUid': uid,
-    });
-    return true;
-  }
-
-  Future<String> like({
-    required List like,
-    required String type,
-    required String uid,
     required String postId,
   }) async {
-    String res = 'some error';
     try {
-      if (like.contains(uid)) {
-        _firebaseFirestore.collection(type).doc(postId).update({
-          'like': FieldValue.arrayRemove([uid])
-        });
-      } else {
-        _firebaseFirestore.collection(type).doc(postId).update({
-          'like': FieldValue.arrayUnion([uid])
-        });
-      }
-      res = 'seccess';
-    } on Exception catch (e) {
-      res = e.toString();
+      var uid = Uuid().v4();
+      Usermodel user = await getUser();
+      await _firebaseFirestore.collection(type).doc(postId).collection('comments').doc(uid).set({
+        'comment': comment,
+        'username': user.username,
+        'profileImage': user.profile,
+        'commentUid': uid,
+      });
+      return true;
+    } catch (e) {
+      throw Exceptions('Failed to add comment: ${e.toString()}');
     }
-    return res;
   }
 
-  Future<void> flollow({
-    required String uid,
+  Future<String> toggleLike({
+    required List likes,
+    required String type,
+    required String postId,
   }) async {
-    DocumentSnapshot snap = await _firebaseFirestore
-        .collection('users')
-        .doc(_auth.currentUser!.uid)
-        .get();
-    List following = (snap.data()! as dynamic)['following'];
     try {
-      if (following.contains(uid)) {
-        _firebaseFirestore
-            .collection('users')
-            .doc(_auth.currentUser!.uid)
-            .update({
-          'following': FieldValue.arrayRemove([uid])
-        });
-        await _firebaseFirestore.collection('users').doc(uid).update({
-          'followers': FieldValue.arrayRemove([_auth.currentUser!.uid])
+      if (likes.contains(_auth.currentUser!.uid)) {
+        await _firebaseFirestore.collection(type).doc(postId).update({
+          'like': FieldValue.arrayRemove([_auth.currentUser!.uid]),
         });
       } else {
-        _firebaseFirestore
-            .collection('users')
-            .doc(_auth.currentUser!.uid)
-            .update({
-          'following': FieldValue.arrayUnion([uid])
-        });
-        _firebaseFirestore.collection('users').doc(uid).update({
-          'followers': FieldValue.arrayUnion([_auth.currentUser!.uid])
+        await _firebaseFirestore.collection(type).doc(postId).update({
+          'like': FieldValue.arrayUnion([_auth.currentUser!.uid]),
         });
       }
-    } on Exception catch (e) {
-      print(e.toString());
+      return 'Success';
+    } catch (e) {
+      return 'Failed: ${e.toString()}';
+    }
+  }
+
+  Future<void> toggleFollow({
+    required String userId,
+  }) async {
+    try {
+      DocumentSnapshot userSnapshot = await _firebaseFirestore.collection('users').doc(_auth.currentUser!.uid).get();
+      Map<String, dynamic>? userData = userSnapshot.data() as Map<String, dynamic>?;
+
+      if (userData != null) {
+        List<dynamic> following = userData['following'];
+
+        if (following.contains(userId)) {
+          await _firebaseFirestore.collection('users').doc(_auth.currentUser!.uid).update({
+            'following': FieldValue.arrayRemove([userId]),
+          });
+          await _firebaseFirestore.collection('users').doc(userId).update({
+            'followers': FieldValue.arrayRemove([_auth.currentUser!.uid]),
+          });
+        } else {
+          await _firebaseFirestore.collection('users').doc(_auth.currentUser!.uid).update({
+            'following': FieldValue.arrayUnion([userId]),
+          });
+          await _firebaseFirestore.collection('users').doc(userId).update({
+            'followers': FieldValue.arrayUnion([_auth.currentUser!.uid]),
+          });
+        }
+      } else {
+        throw Exceptions('Error: User data is null.');
+      }
+    } catch (e) {
+      throw Exceptions(e.toString());
     }
   }
 }

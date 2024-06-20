@@ -91,10 +91,10 @@ class _CommentState extends State<Comment> {
                           islodaing = true;
                         });
                         if (comment.text.isNotEmpty) {
-                          Firebase_Firestore().Comments(
-                            comment: comment.text,
-                            type: widget.type,
-                            uidd: widget.uid,
+                          Firebase_Firestore().addComment(
+                            comment: "Your comment here",
+                            type: "post",
+                            postId: "postId",
                           );
                         }
                         setState(() {

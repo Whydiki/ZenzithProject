@@ -4,203 +4,168 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:project/data/firebase_service/firebase_auth.dart';
 import 'package:project/util/dialog.dart';
-import 'package:project/util/exeption.dart';
-import 'package:project/util/imagepicker.dart';
+import 'package:project/util/exceptions.dart';
+import 'package:project/util/imagepicker.dart'; // Ensure this is correctly imported
 
 class SignupScreen extends StatefulWidget {
   final VoidCallback show;
-  SignupScreen(this.show, {super.key});
+  const SignupScreen(this.show, {Key? key}) : super(key: key);
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  _SignupScreenState createState() => _SignupScreenState();
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  final email = TextEditingController();
-  FocusNode email_F = FocusNode();
-  final password = TextEditingController();
-  FocusNode password_F = FocusNode();
-  final passwordConfirme = TextEditingController();
-  FocusNode passwordConfirme_F = FocusNode();
-  final username = TextEditingController();
-  FocusNode username_F = FocusNode();
-  final bio = TextEditingController();
-  FocusNode bio_F = FocusNode();
-  File? _imageFile;
+  final TextEditingController email = TextEditingController();
+  final FocusNode emailFocus = FocusNode();
+  final TextEditingController password = TextEditingController();
+  final FocusNode passwordFocus = FocusNode();
+  final TextEditingController passwordConfirm = TextEditingController();
+  final FocusNode passwordConfirmFocus = FocusNode();
+  final TextEditingController username = TextEditingController();
+  final FocusNode usernameFocus = FocusNode();
+  final TextEditingController bio = TextEditingController();
+  final FocusNode bioFocus = FocusNode();
+  File? profileImage;
+
   @override
   void dispose() {
-    // TODO: implement dispose
-    super.dispose();
     email.dispose();
+    emailFocus.dispose();
     password.dispose();
-    passwordConfirme.dispose();
+    passwordFocus.dispose();
+    passwordConfirm.dispose();
+    passwordConfirmFocus.dispose();
     username.dispose();
+    usernameFocus.dispose();
     bio.dispose();
+    bioFocus.dispose();
+    super.dispose();
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(width: 96.w, height: 10.h),
-            Center(
-              child: Image.asset('images/logo.jpg'),
-            ),
-            SizedBox(width: 96.w, height: 70.h),
+            SizedBox(height: 100.h),
             InkWell(
               onTap: () async {
-                File _imagefilee = await ImagePickerr().uploadImage('gallery');
-                setState(() {
-                  _imageFile = _imagefilee;
-                });
+                File? image = await ImagePickerr().uploadImage('gallery');
+                if (image != null) {
+                  setState(() {
+                    profileImage = image;
+                  });
+                }
               },
               child: CircleAvatar(
-                radius: 36.r,
+                radius: 50.r,
                 backgroundColor: Colors.grey,
-                child: _imageFile == null
-                    ? CircleAvatar(
-                  radius: 34.r,
-                  backgroundImage: AssetImage('images/person.png'),
-                  backgroundColor: Colors.grey.shade200,
-                )
-                    : CircleAvatar(
-                  radius: 34.r,
-                  backgroundImage: Image.file(
-                    _imageFile!,
-                    fit: BoxFit.cover,
-                  ).image,
-                  backgroundColor: Colors.grey.shade200,
+                backgroundImage: profileImage == null
+                    ? AssetImage('images/person.png')
+                    : FileImage(profileImage!) as ImageProvider,
+              ),
+            ),
+            SizedBox(height: 20.h),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: TextField(
+                controller: email,
+                focusNode: emailFocus,
+                decoration: InputDecoration(
+                  hintText: 'Email',
+                  prefixIcon: Icon(Icons.email),
                 ),
               ),
             ),
-            SizedBox(height: 40.h),
-            Textfild(email, email_F, 'Email', Icons.email),
-            SizedBox(height: 15.h),
-            Textfild(username, username_F, 'username', Icons.person),
-            SizedBox(height: 15.h),
-            Textfild(bio, bio_F, 'bio', Icons.abc),
-            SizedBox(height: 15.h),
-            Textfild(password, password_F, 'Password', Icons.lock),
-            SizedBox(height: 15.h),
-            Textfild(passwordConfirme, passwordConfirme_F, 'PasswordConfirme',
-                Icons.lock),
-            SizedBox(height: 15.h),
-            Signup(),
-            SizedBox(height: 15.h),
-            Have()
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget Have() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 10.w),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Text(
-            "Don you have account?  ",
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: Colors.grey,
+            SizedBox(height: 10.h),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: TextField(
+                controller: username,
+                focusNode: usernameFocus,
+                decoration: InputDecoration(
+                  hintText: 'Username',
+                  prefixIcon: Icon(Icons.person),
+                ),
+              ),
             ),
-          ),
-          GestureDetector(
-            onTap: widget.show,
-            child: Text(
-              "Login ",
-              style: TextStyle(
-                  fontSize: 15.sp,
+            SizedBox(height: 10.h),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: TextField(
+                controller: bio,
+                focusNode: bioFocus,
+                decoration: InputDecoration(
+                  hintText: 'Bio',
+                  prefixIcon: Icon(Icons.info),
+                ),
+              ),
+            ),
+            SizedBox(height: 10.h),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: TextField(
+                controller: password,
+                focusNode: passwordFocus,
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: 'Password',
+                  prefixIcon: Icon(Icons.lock),
+                ),
+              ),
+            ),
+            SizedBox(height: 10.h),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: TextField(
+                controller: passwordConfirm,
+                focusNode: passwordConfirmFocus,
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: 'Confirm Password',
+                  prefixIcon: Icon(Icons.lock),
+                ),
+              ),
+            ),
+            SizedBox(height: 20.h),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  await Authentication().signup(
+                    email: email.text,
+                    password: password.text,
+                    passwordConfirme: passwordConfirm.text,
+                    username: username.text,
+                    bio: bio.text,
+                    profile: profileImage ?? File(''),
+                  );
+                  // Navigate to main page or dashboard
+                } catch (e) {
+                  dialogBuilder(context, e.toString());
+                }
+              },
+              child: Text('Sign up'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 15.h),
+              ),
+            ),
+            SizedBox(height: 10.h),
+            GestureDetector(
+              onTap: widget.show,
+              child: Text(
+                'Already have an account? Login',
+                style: TextStyle(
                   color: Colors.blue,
-                  fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget Signup() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 10.w),
-      child: InkWell(
-        onTap: () async {
-          try {
-            await Authentication().Signup(
-              email: email.text,
-              password: password.text,
-              passwordConfirme: passwordConfirme.text,
-              username: username.text,
-              bio: bio.text,
-              profile: _imageFile ?? File(''),
-            );
-          } on exceptions catch (e) {
-            dialogBuilder(context, e.message);
-          }
-        },
-        child: Container(
-          alignment: Alignment.center,
-          width: double.infinity,
-          height: 44.h,
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(10.r),
-          ),
-          child: Text(
-            'Sign up',
-            style: TextStyle(
-              fontSize: 23.sp,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Padding Textfild(TextEditingController controll, FocusNode focusNode,
-      String typename, IconData icon) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 10.w),
-      child: Container(
-        height: 44.h,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(5.r),
-        ),
-        child: TextField(
-          style: TextStyle(fontSize: 18.sp, color: Colors.black),
-          controller: controll,
-          focusNode: focusNode,
-          decoration: InputDecoration(
-            hintText: typename,
-            prefixIcon: Icon(
-              icon,
-              color: focusNode.hasFocus ? Colors.black : Colors.grey[600],
-            ),
-            contentPadding:
-            EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(5.r),
-              borderSide: BorderSide(
-                width: 2.w,
-                color: Colors.grey,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(5.r),
-              borderSide: BorderSide(
-                width: 2.w,
-                color: Colors.black,
-              ),
-            ),
-          ),
+          ],
         ),
       ),
     );

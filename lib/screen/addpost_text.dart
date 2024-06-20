@@ -41,7 +41,7 @@ class _AddPostTextScreenState extends State<AddPostTextScreen> {
                   });
                   String post_url = await StorageMethod()
                       .uploadImageToStorage('post', widget._file);
-                  await Firebase_Firestore().CreatePost(
+                  await Firebase_Firestore().createPost(
                     postImage: post_url,
                     caption: caption.text,
                     location: location.text,

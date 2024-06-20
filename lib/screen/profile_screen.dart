@@ -220,7 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: GestureDetector(
                 onTap: () {
                   if (yourse == false) {
-                    Firebase_Firestore().flollow(uid: widget.Uid);
+                    Firebase_Firestore().toggleFollow(userId: widget.Uid);
                     setState(() {
                       follow = true;
                     });
@@ -255,7 +255,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        Firebase_Firestore().flollow(uid: widget.Uid);
+                        Firebase_Firestore().toggleFollow(userId: widget.Uid);
                         setState(() {
                           follow = false;
                         });

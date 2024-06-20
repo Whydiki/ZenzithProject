@@ -57,11 +57,12 @@ class _PostWidgetState extends State<PostWidget> {
         ),
         GestureDetector(
           onDoubleTap: () {
-            Firebase_Firestore().like(
-                like: widget.snapshot['like'],
-                type: 'posts',
-                uid: user,
-                postId: widget.snapshot['postId']);
+            Firebase_Firestore().toggleLike(
+              likes: widget.snapshot['like'],
+              type: 'posts',
+              postId: widget.snapshot['postId'],
+            );
+
             setState(() {
               isAnimating = true;
             });
@@ -111,11 +112,12 @@ class _PostWidgetState extends State<PostWidget> {
                   LikeAnimation(
                     child: IconButton(
                       onPressed: () {
-                        Firebase_Firestore().like(
-                            like: widget.snapshot['like'],
-                            type: 'posts',
-                            uid: user,
-                            postId: widget.snapshot['postId']);
+                        Firebase_Firestore().toggleLike(
+                          likes: widget.snapshot['like'],
+                          type: 'posts',
+                          postId: widget.snapshot['postId'],
+                        );
+
                       },
                       icon: Icon(
                         widget.snapshot['like'].contains(user)
