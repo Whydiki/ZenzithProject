@@ -3,16 +3,15 @@ import 'package:project/screen/add_post_screen.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AddScreen extends StatefulWidget {
-  const AddScreen({super.key});
+  const AddScreen({Key? key}) : super(key: key);
 
   @override
   State<AddScreen> createState() => _AddScreenState();
 }
 
-int _currentIndex = 0;
-
 class _AddScreenState extends State<AddScreen> {
   late PageController pageController;
+  int _currentIndex = 0; // Pindahkan ke dalam state
 
   @override
   void initState() {
@@ -26,13 +25,13 @@ class _AddScreenState extends State<AddScreen> {
     super.dispose();
   }
 
-  onPageChanged(int page) {
+  void onPageChanged(int page) {
     setState(() {
       _currentIndex = page;
     });
   }
 
-  navigationTapped(int page) {
+  void navigationTapped(int page) {
     pageController.jumpToPage(page);
   }
 
@@ -47,7 +46,7 @@ class _AddScreenState extends State<AddScreen> {
             PageView(
               controller: pageController,
               onPageChanged: onPageChanged,
-              children: const [
+              children: [
                 AddPostScreen(),
               ],
             ),
@@ -67,15 +66,14 @@ class _AddScreenState extends State<AddScreen> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        navigationTapped(0);
+                        navigationTapped(0); // Pindah ke halaman pertama
                       },
                       child: Text(
                         'Post',
                         style: TextStyle(
                           fontSize: 15.sp,
                           fontWeight: FontWeight.w500,
-                          color:
-                          _currentIndex == 0 ? Colors.white : Colors.grey,
+                          color: _currentIndex == 0 ? Colors.white : Colors.grey,
                         ),
                       ),
                     ),

@@ -1,19 +1,19 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:project/screen/add_screen.dart';
 import 'package:project/screen/explore.dart';
 import 'package:project/screen/home_screen.dart';
 import 'package:project/screen/profile_screen.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class Navigations_Screen extends StatefulWidget {
-  const Navigations_Screen({super.key});
+class NavigationsScreen extends StatefulWidget {
+  const NavigationsScreen({Key? key}) : super(key: key);
 
   @override
-  State<Navigations_Screen> createState() => _Navigations_ScreenState();
+  State<NavigationsScreen> createState() => _NavigationsScreenState();
 }
 
-class _Navigations_ScreenState extends State<Navigations_Screen> {
+class _NavigationsScreenState extends State<NavigationsScreen> {
   int _currentIndex = 0;
   late PageController pageController;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -52,19 +52,19 @@ class _Navigations_ScreenState extends State<Navigations_Screen> {
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: '',
+            label: 'Home',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.search),
-            label: '',
+            label: 'Explore',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.camera),
-            label: '',
+            label: 'Add',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: '',
+            label: 'Profile',
           ),
         ],
       ),
@@ -75,9 +75,7 @@ class _Navigations_ScreenState extends State<Navigations_Screen> {
           HomeScreen(),
           ExploreScreen(),
           AddScreen(),
-          ProfileScreen(
-            Uid: _auth.currentUser!.uid,
-          ),
+          ProfileScreen(uid: _auth.currentUser!.uid),
         ],
       ),
     );

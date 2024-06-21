@@ -1,171 +1,184 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:project/screen/addpost_text.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:photo_manager/photo_manager.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:geolocator/geolocator.dart';
+import 'package:project/services/current_location.dart';
 
 class AddPostScreen extends StatefulWidget {
-  const AddPostScreen({super.key});
-
   @override
-  State<AddPostScreen> createState() => _AddPostScreenState();
+  _AddPostScreenState createState() => _AddPostScreenState();
 }
 
 class _AddPostScreenState extends State<AddPostScreen> {
-  final List<Widget> _mediaList = [];
-  final List<File> path = [];
-  File? _file;
-  int currentPage = 0;
-  int? lastPage;
-  @override
-  _fetchNewMedia() async {
-    lastPage = currentPage;
-    final PermissionState ps = await PhotoManager.requestPermissionExtend();
-    if (ps.isAuth) {
-      List<AssetPathEntity> album =
-      await PhotoManager.getAssetPathList(type: RequestType.image);
-      List<AssetEntity> media =
-      await album[0].getAssetListPaged(page: currentPage, size: 60);
+  final TextEditingController _postTextController = TextEditingController();
+  String? _imageUrl;
+  XFile? _image;
+  Position? _currentPosition;
+  final User? user = FirebaseAuth.instance.currentUser;
+  final CurrentLocation _locationService = CurrentLocation();
 
-      for (var asset in media) {
-        if (asset.type == AssetType.image) {
-          final file = await asset.file;
-          if (file != null) {
-            path.add(File(file.path));
-            _file = path[0];
-          }
-        }
-      }
-      List<Widget> temp = [];
-      for (var asset in media) {
-        temp.add(
-          FutureBuilder(
-            future: asset.thumbnailDataWithSize(ThumbnailSize(200, 200)),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done)
-                return Container(
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: Image.memory(
-                          snapshot.data!,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
+  Future<void> _getImageFromCamera() async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
 
-              return Container();
-            },
-          ),
-        );
-      }
+    if (image != null) {
       setState(() {
-        _mediaList.addAll(temp);
-        currentPage++;
+        _image = image;
       });
+
+      if (!kIsWeb) {
+        String? imageUrl = await _uploadImage(image);
+        setState(() {
+          _imageUrl = imageUrl;
+        });
+      } else {
+        setState(() {
+          _imageUrl = image.path;
+        });
+      }
+    }
+  }
+
+  Future<String?> _uploadImage(XFile image) async {
+    try {
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('post_images')
+          .child('${DateTime.now().toIso8601String()}.jpg');
+      await ref.putFile(File(image.path));
+      return await ref.getDownloadURL();
+    } catch (e) {
+      print('Error uploading image: $e');
+      return null;
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      Position? position = await _locationService.getCurrentLocation();
+      setState(() {
+        _currentPosition = position;
+      });
+    } catch (e) {
+      print('Error getting location: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mendapatkan lokasi. Silakan coba lagi.'),
+        ),
+      );
     }
   }
 
   @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    _fetchNewMedia();
-  }
-
-  int indexx = 0;
-
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'New Post',
-          style: TextStyle(color: Colors.black),
-        ),
-        centerTitle: false,
-        actions: [
-          Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.w),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => AddPostTextScreen(_file!),
-                  ));
-                },
-                child: Text(
-                  'Next',
-                  style: TextStyle(fontSize: 15.sp, color: Colors.blue),
+        title: Text('Tambah Postingan'),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            GestureDetector(
+              onTap: _getImageFromCamera,
+              child: Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey),
+                ),
+                child: _image != null
+                    ? kIsWeb
+                    ? Image.network(
+                  _imageUrl!,
+                  fit: BoxFit.cover,
+                )
+                    : Image.file(
+                  File(_image!.path),
+                  fit: BoxFit.cover,
+                )
+                    : Icon(
+                  Icons.camera_alt,
+                  size: 100,
+                  color: Colors.grey[400],
+                ),
+                alignment: Alignment.center,
+              ),
+            ),
+            SizedBox(height: 20),
+            TextField(
+              controller: _postTextController,
+              maxLines: null,
+              decoration: InputDecoration(
+                hintText: 'Tulis postingan Anda di sini...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                filled: true,
+                fillColor: Colors.grey[100],
+              ),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                if (_postTextController.text.isNotEmpty && _image != null) {
+                  await _getCurrentLocation();
+                  if (_imageUrl == null) {
+                    _imageUrl = await _uploadImage(_image!);
+                  }
+                  if (_imageUrl != null) {
+                    FirebaseFirestore.instance.collection('posts').add({
+                      'text': _postTextController.text,
+                      'image_url': _imageUrl,
+                      'timestamp': Timestamp.now(),
+                      'username': user?.email ?? 'Anonim',
+                      'userId': user?.uid,
+                      'location': _currentPosition != null
+                          ? {
+                        'latitude': _currentPosition!.latitude,
+                        'longitude': _currentPosition!.longitude
+                      }
+                          : null,
+                    }).then((_) {
+                      Navigator.pop(context);
+                    }).catchError((error) {
+                      print('Error saving post: $error');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Gagal menyimpan postingan. Silakan coba lagi.'),
+                        ),
+                      );
+                    });
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Gagal mengunggah gambar. Silakan coba lagi.'),
+                      ),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Silakan tulis postingan dan pilih gambar.'),
+                    ),
+                  );
+                }
+              },
+              child: Text('Posting'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Container(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 375.h,
-                  child: GridView.builder(
-                    itemCount: _mediaList.isEmpty ? _mediaList.length : 1,
-                    gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 1,
-                      mainAxisSpacing: 1,
-                      crossAxisSpacing: 1,
-                    ),
-                    itemBuilder: (context, index) {
-                      return _mediaList[indexx];
-                    },
-                  ),
-                ),
-                Container(
-                  width: double.infinity,
-                  height: 40.h,
-                  color: Colors.white,
-                  child: Row(
-                    children: [
-                      SizedBox(width: 10.w),
-                      Text(
-                        'Recent',
-                        style: TextStyle(
-                            fontSize: 15.sp, fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                ),
-                GridView.builder(
-                  shrinkWrap: true,
-                  itemCount: _mediaList.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    mainAxisSpacing: 1,
-                    crossAxisSpacing: 2,
-                  ),
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          indexx = index;
-                          _file = path[index];
-                        });
-                      },
-                      child: _mediaList[index],
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
+          ],
         ),
       ),
     );

@@ -25,7 +25,7 @@ class Firebase_Firestore {
       });
       return true;
     } catch (e) {
-      throw Exceptions('Failed to create user: ${e.toString()}');
+      throw Exception('Failed to create user: ${e.toString()}');
     }
   }
 
@@ -43,10 +43,10 @@ class Firebase_Firestore {
           data['username'],
         );
       } else {
-        throw Exceptions('User not found');
+        throw Exception('User not found');
       }
     } catch (e) {
-      throw Exceptions('Failed to get user: ${e.toString()}');
+      throw Exception('Failed to get user: ${e.toString()}');
     }
   }
 
@@ -72,7 +72,7 @@ class Firebase_Firestore {
       });
       return true;
     } catch (e) {
-      throw Exceptions('Failed to create post: ${e.toString()}');
+      throw Exception('Failed to create post: ${e.toString()}');
     }
   }
 
@@ -92,7 +92,7 @@ class Firebase_Firestore {
       });
       return true;
     } catch (e) {
-      throw Exceptions('Failed to add comment: ${e.toString()}');
+      throw Exception('Failed to add comment: ${e.toString()}');
     }
   }
 
@@ -143,10 +143,10 @@ class Firebase_Firestore {
           });
         }
       } else {
-        throw Exceptions('Error: User data is null.');
+        throw Exception('Error: User data is null.');
       }
     } catch (e) {
-      throw Exceptions(e.toString());
+      throw Exception(e.toString());
     }
   }
 }

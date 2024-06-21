@@ -18,7 +18,7 @@ class Authentication {
         password: password.trim(),
       );
     } on FirebaseAuthException catch (e) {
-      throw Exceptions(e.message.toString());
+      throw Exception(e.message.toString());
     }
   }
 
@@ -60,13 +60,13 @@ class Authentication {
                 : url,
           );
         } else {
-          throw Exceptions('Password and confirm password should be the same');
+          throw Exception('Password and confirm password should be the same');
         }
       } else {
-        throw Exceptions('Please enter all the fields');
+        throw Exception('Please enter all the fields');
       }
     } on FirebaseAuthException catch (e) {
-      throw Exceptions(e.message.toString());
+      throw Exception(e.message.toString());
     }
   }
 }
