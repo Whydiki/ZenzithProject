@@ -3,7 +3,6 @@ import 'package:project/screen/add_screen.dart';
 import 'package:project/screen/explore.dart';
 import 'package:project/screen/home_screen.dart';
 import 'package:project/screen/profile_screen.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class NavigationsScreen extends StatefulWidget {
@@ -68,15 +67,31 @@ class _NavigationsScreenState extends State<NavigationsScreen> {
           ),
         ],
       ),
-      body: PageView(
-        controller: pageController,
-        onPageChanged: onPageChanged,
-        children: [
-          HomeScreen(),
-          ExploreScreen(),
-          AddScreen(),
-          ProfileScreen(uid: _auth.currentUser!.uid),
-        ],
+      body: FutureBuilder<User?>(
+        future: FirebaseAuth.instance
+            .authStateChanges()
+            .first,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasData) {
+            final user = snapshot.data!;
+            return PageView(
+              controller: pageController,
+              onPageChanged: onPageChanged,
+              children: [
+                HomeScreen(),
+                ExploreScreen(),
+                AddScreen(),
+                ProfileScreen(uid: user.uid),
+              ],
+            );
+          } else {
+            return Center(child: Text('Not authenticated'));
+          }
+        },
       ),
     );
   }

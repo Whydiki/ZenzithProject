@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:project/screen/post_screen.dart';
 import 'package:project/screen/profile_screen.dart';
@@ -18,6 +17,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   final search = TextEditingController();
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
   bool show = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,7 +47,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) => PostScreen(
-                                  snap.data(),
+                                  postData: snap.data() as Map<String, dynamic>,
                                 ),
                               ),
                             );
@@ -80,7 +80,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 },
               ),
             if (!show)
-              StreamBuilder(
+              StreamBuilder<QuerySnapshot>(
                 stream: _firebaseFirestore
                     .collection('users')
                     .where('username', isGreaterThanOrEqualTo: search.text)
@@ -91,8 +91,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         child: Center(child: CircularProgressIndicator()));
                   }
                   return SliverPadding(
-                    padding:
-                    EdgeInsets.symmetric(horizontal: 15.w, vertical: 5.h),
+                    padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 5.h),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                             (context, index) {
@@ -103,8 +102,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               GestureDetector(
                                 onTap: () {
                                   Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) =>
-                                        ProfileScreen(Uid: snap.id),
+                                    builder: (context) => ProfileScreen(uid: snap.id),
                                   ));
                                 },
                                 child: Row(
@@ -128,7 +126,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     ),
                   );
                 },
-              )
+              ),
           ],
         ),
       ),
@@ -161,11 +159,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   child: TextField(
                     onChanged: (value) {
                       setState(() {
-                        if (value.length > 0) {
-                          show = false;
-                        } else {
-                          show = true;
-                        }
+                        show = value.isEmpty;
                       });
                     },
                     controller: search,

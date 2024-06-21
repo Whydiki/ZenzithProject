@@ -88,6 +88,10 @@ flutter:
     - images/zenzith.png
     - images/camera.jpg
     - images/send.jpg
+    - images/person.png
+    - images/post.jpg
+    - images/save.png
+    - images/comment.webp
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

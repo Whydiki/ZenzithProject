@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:project/widgets/post_widget.dart';
 
 class PostScreen extends StatelessWidget {
-  final snapshot;
-  PostScreen(this.snapshot, {super.key});
+  final Map<String, dynamic> postData;
+
+  const PostScreen({Key? key, required this.postData}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(child: PostWidget(snapshot)),
+      appBar: AppBar(
+        title: Text('Post Details'),
+      ),
+      body: Center(
+        child: Text(postData['postText'] ?? 'No data available'),
+      ),
     );
   }
 }
