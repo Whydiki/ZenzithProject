@@ -4,11 +4,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:location/location.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:geolocator/geolocator.dart';
-import 'package:project/services/current_location.dart';
+import 'home_screen.dart'; // Pastikan HomeScreen diimpor dengan benar
 
 class AddPostScreen extends StatefulWidget {
+  const AddPostScreen({super.key});
+
   @override
   _AddPostScreenState createState() => _AddPostScreenState();
 }
@@ -17,19 +19,20 @@ class _AddPostScreenState extends State<AddPostScreen> {
   final TextEditingController _postTextController = TextEditingController();
   String? _imageUrl;
   XFile? _image;
-  Position? _currentPosition;
   final User? user = FirebaseAuth.instance.currentUser;
-  final CurrentLocation _locationService = CurrentLocation();
+  LocationData? _locationData;
+  bool _isLoading = false;
 
   Future<void> _getImageFromCamera() async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.camera);
 
     if (image != null) {
       setState(() {
         _image = image;
       });
 
+      // Upload image and get URL if not on web
       if (!kIsWeb) {
         String? imageUrl = await _uploadImage(image);
         setState(() {
@@ -45,10 +48,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
   Future<String?> _uploadImage(XFile image) async {
     try {
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('post_images')
-          .child('${DateTime.now().toIso8601String()}.jpg');
+      final ref = FirebaseStorage.instance.ref().child('post_images').child('${DateTime.now().toIso8601String()}.jpg');
       await ref.putFile(File(image.path));
       return await ref.getDownloadURL();
     } catch (e) {
@@ -57,30 +57,47 @@ class _AddPostScreenState extends State<AddPostScreen> {
     }
   }
 
-  Future<void> _getCurrentLocation() async {
-    try {
-      Position? position = await _locationService.getCurrentLocation();
-      setState(() {
-        _currentPosition = position;
-      });
-    } catch (e) {
-      print('Error getting location: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal mendapatkan lokasi. Silakan coba lagi.'),
-        ),
-      );
+  Future<void> _getLocation() async {
+    Location location = Location();
+    bool _serviceEnabled;
+    PermissionStatus _permissionGranted;
+
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
     }
+
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    final locationData = await location.getLocation();
+    setState(() {
+      _locationData = locationData;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getLocation();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tambah Postingan'),
+        title: const Text('Tambah Postingan'),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -88,11 +105,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
               onTap: _getImageFromCamera,
               child: Container(
                 height: 200,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.grey),
-                ),
+                color: Colors.grey[200],
+                alignment: Alignment.center,
                 child: _image != null
                     ? kIsWeb
                     ? Image.network(
@@ -108,75 +122,69 @@ class _AddPostScreenState extends State<AddPostScreen> {
                   size: 100,
                   color: Colors.grey[400],
                 ),
-                alignment: Alignment.center,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             TextField(
               controller: _postTextController,
               maxLines: null,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Tulis postingan Anda di sini...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                filled: true,
-                fillColor: Colors.grey[100],
+                border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () async {
-                if (_postTextController.text.isNotEmpty && _image != null) {
-                  await _getCurrentLocation();
-                  if (_imageUrl == null) {
-                    _imageUrl = await _uploadImage(_image!);
-                  }
+              onPressed: _isLoading ? null : () async {
+                if (_postTextController.text.isNotEmpty && _image != null && _locationData != null) {
+                  setState(() {
+                    _isLoading = true;
+                  });
+
+                  _imageUrl ??= await _uploadImage(_image!);
                   if (_imageUrl != null) {
                     FirebaseFirestore.instance.collection('posts').add({
                       'text': _postTextController.text,
                       'image_url': _imageUrl,
                       'timestamp': Timestamp.now(),
-                      'username': user?.email ?? 'Anonim',
-                      'userId': user?.uid,
-                      'location': _currentPosition != null
-                          ? {
-                        'latitude': _currentPosition!.latitude,
-                        'longitude': _currentPosition!.longitude
-                      }
-                          : null,
+                      'username': user?.email ?? 'Anonim', // Use email or other identifier
+                      'userId': user?.uid, // Save user ID for reference
+                      'location': GeoPoint(_locationData!.latitude!, _locationData!.longitude!), // Save location
                     }).then((_) {
-                      Navigator.pop(context);
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) => const HomeScreen()), // Pastikan HomeScreen diimpor dengan benar
+                      );
                     }).catchError((error) {
                       print('Error saving post: $error');
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                        const SnackBar(
                           content: Text('Gagal menyimpan postingan. Silakan coba lagi.'),
                         ),
                       );
+                    }).whenComplete(() {
+                      setState(() {
+                        _isLoading = false;
+                      });
                     });
                   } else {
+                    setState(() {
+                      _isLoading = false;
+                    });
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text('Gagal mengunggah gambar. Silakan coba lagi.'),
                       ),
                     );
                   }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Silakan tulis postingan dan pilih gambar.'),
+                    const SnackBar(
+                      content: Text('Silakan tulis postingan, pilih gambar, dan pastikan lokasi tersedia.'),
                     ),
                   );
                 }
               },
-              child: Text('Posting'),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
+              child: _isLoading ? CircularProgressIndicator() : const Text('Posting'),
             ),
           ],
         ),

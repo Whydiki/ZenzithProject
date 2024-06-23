@@ -1,13 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:project/data/firebase_service/firebase_auth.dart';
-import 'package:project/util/dialog.dart';
-import 'package:project/util/imagepicker.dart';
+import 'package:project/data/firebase_service/firebase_auth.dart'; // Pastikan jalur ini benar
+import 'package:project/util/dialog.dart'; // Pastikan jalur ini benar
+import 'package:project/util/imagepicker.dart'; // Pastikan jalur ini benar
+import 'package:project/screen/login_screen.dart'; // Pastikan jalur ini benar
 
 class SignupScreen extends StatefulWidget {
-  final VoidCallback show;
-  const SignupScreen(this.show, {Key? key}) : super(key: key);
+  const SignupScreen({Key? key}) : super(key: key);
 
   @override
   _SignupScreenState createState() => _SignupScreenState();
@@ -65,7 +65,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   radius: 50.r,
                   backgroundColor: Colors.grey,
                   backgroundImage: profileImage == null
-                      ? AssetImage('images/person.png')
+                      ? const AssetImage('images/person.png')
                       : FileImage(profileImage!) as ImageProvider,
                 ),
               ),
@@ -75,7 +75,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 child: TextField(
                   controller: email,
                   focusNode: emailFocus,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Email',
                     prefixIcon: Icon(Icons.email),
                   ),
@@ -87,7 +87,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 child: TextField(
                   controller: username,
                   focusNode: usernameFocus,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Username',
                     prefixIcon: Icon(Icons.person),
                   ),
@@ -99,7 +99,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 child: TextField(
                   controller: bio,
                   focusNode: bioFocus,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Bio',
                     prefixIcon: Icon(Icons.info),
                   ),
@@ -112,7 +112,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   controller: password,
                   focusNode: passwordFocus,
                   obscureText: true,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Password',
                     prefixIcon: Icon(Icons.lock),
                   ),
@@ -125,7 +125,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   controller: passwordConfirm,
                   focusNode: passwordConfirmFocus,
                   obscureText: true,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Confirm Password',
                     prefixIcon: Icon(Icons.lock),
                   ),
@@ -134,6 +134,11 @@ class _SignupScreenState extends State<SignupScreen> {
               SizedBox(height: 20.h),
               ElevatedButton(
                 onPressed: () async {
+                  if (password.text != passwordConfirm.text) {
+                    dialogBuilder(context, 'Passwords do not match');
+                    return;
+                  }
+
                   try {
                     await Authentication().signup(
                       email: email.text,
@@ -148,15 +153,20 @@ class _SignupScreenState extends State<SignupScreen> {
                     dialogBuilder(context, e.toString());
                   }
                 },
-                child: Text('Sign up'),
+                child: const Text('Sign up'),
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 15.h),
                 ),
               ),
               SizedBox(height: 10.h),
               GestureDetector(
-                onTap: widget.show,
-                child: Text(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  );
+                },
+                child: const Text(
                   'Already have an account? Login',
                   style: TextStyle(
                     color: Colors.blue,
