@@ -29,7 +29,7 @@ class _AuthScreenState extends State<AuthScreen> {
           children: [
             Expanded(
               child: Center(
-                child: isLoginSelected ? LoginScreen(toggleScreen) : SignupScreen(toggleScreen),
+                child: isLoginSelected ? const LoginScreen() : const SignupScreen(),
               ),
             ),
             Padding(
@@ -38,7 +38,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 onTap: toggleScreen,
                 child: Text(
                   isLoginSelected ? 'Don\'t have an account? Sign up' : 'Already have an account? Login',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.blue,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,

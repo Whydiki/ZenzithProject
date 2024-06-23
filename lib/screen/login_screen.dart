@@ -1,100 +1,139 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:project/data/firebase_service/firebase_auth.dart';
-import 'package:project/util/dialog.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:project/screen/home_screen.dart';
 import 'package:project/screen/signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  final VoidCallback show;
-  const LoginScreen(this.show, {Key? key}) : super(key: key);
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController email = TextEditingController();
-  final FocusNode emailFocus = FocusNode();
-  final TextEditingController password = TextEditingController();
-  final FocusNode passwordFocus = FocusNode();
-
-  @override
-  void dispose() {
-    email.dispose();
-    emailFocus.dispose();
-    password.dispose();
-    passwordFocus.dispose();
-    super.dispose();
-  }
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  String _errorMessage = '';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: Colors.white,
-      body: SafeArea(
+      backgroundColor: Colors.lightBlue[100],
+      appBar: AppBar(
+        title: const Text('Login'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(50.0),
         child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(height: 100.h),
+              const SizedBox(height: 32.0),
               Image.asset(
-                'images/logo.png',
-                width: 200.w,
+                'images/logo.png', // Ganti dengan path gambar Anda
+                height: 300,
               ),
-              SizedBox(height: 60.h),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                child: TextField(
-                  controller: email,
-                  focusNode: emailFocus,
-                  decoration: InputDecoration(
-                    hintText: 'Email',
-                    prefixIcon: Icon(Icons.email),
-                  ),
+              const SizedBox(height: 32.0),
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                  filled: true,
+                  fillColor: Colors.blueAccent,
                 ),
               ),
-              SizedBox(height: 20.h),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                child: TextField(
-                  controller: password,
-                  focusNode: passwordFocus,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    hintText: 'Password',
-                    prefixIcon: Icon(Icons.lock),
-                  ),
+              const SizedBox(height: 16.0),
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(),
+                  filled: true,
+                  fillColor: Colors.blueAccent,
                 ),
+                obscureText: true,
               ),
-              SizedBox(height: 20.h),
+              const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: () async {
-                  try {
-                    await Authentication().login(
-                      email: email.text,
-                      password: password.text,
+                  final email = _emailController.text.trim();
+                  final password = _passwordController.text;
+
+                  // Validasi email
+                  if (email.isEmpty || !isValidEmail(email)) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please enter a valid email'),
+                      ),
                     );
-                    // Navigate to main page or dashboard
-                  } catch (e) {
-                    dialogBuilder(context, e.toString());
+                    return;
+                  }
+
+                  // Validasi password
+                  if (password.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please enter your password'),
+                      ),
+                    );
+                    return;
+                  }
+
+                  try {
+                    // Lakukan sign in dengan email dan password
+                    await FirebaseAuth.instance.signInWithEmailAndPassword(
+                      email: email,
+                      password: password,
+                    );
+
+                    // Jika berhasil sign in, navigasi ke halaman beranda
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    );
+                  } on FirebaseAuthException catch (error) {
+                    print('Error code: ${error.code}');
+                    if (error.code == 'user-not-found') {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('No user found with that email')),
+                      );
+                    } else if (error.code == 'wrong-password') {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Wrong password. Please try again.')),
+                      );
+                    } else {
+                      setState(() {
+                        _errorMessage = error.message ?? 'An error occurred';
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(_errorMessage),
+                        ),
+                      );
+                    }
+                  } catch (error) {
+                    setState(() {
+                      _errorMessage = error.toString();
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(_errorMessage),
+                      ),
+                    );
                   }
                 },
-                child: Text('Login'),
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 15.h),
-                ),
+                child: const Text('Login'),
               ),
-              SizedBox(height: 10.h),
+              const SizedBox(height: 32.0),
               GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => SignupScreen(widget.show)),
+                    MaterialPageRoute(builder: (context) => const SignupScreen()),
                   );
                 },
-                child: Text(
-                  'Don\'t have an account? Sign up',
+                child: const Text(
+                  'Lu belum punya akun? Sign up dulu dong',
                   style: TextStyle(
                     color: Colors.blue,
                     fontWeight: FontWeight.bold,
@@ -106,5 +145,11 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  bool isValidEmail(String email) {
+    String emailRegex = r"^[a-zA-Z0-9.!#$%&'+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$";
+    RegExp regex = RegExp(emailRegex);
+    return regex.hasMatch(email);
   }
 }

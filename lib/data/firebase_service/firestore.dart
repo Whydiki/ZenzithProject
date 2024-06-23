@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:project/data/model/usermodel.dart';
-import 'package:project/util/exceptions.dart';
 import 'package:uuid/uuid.dart';
+import 'package:project/data/model/usermodel.dart';
 
 class Firebase_Firestore {
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
@@ -34,14 +33,7 @@ class Firebase_Firestore {
       final userDoc = await _firebaseFirestore.collection('users').doc(UID ?? _auth.currentUser!.uid).get();
       if (userDoc.exists) {
         final data = userDoc.data()!;
-        return Usermodel(
-          data['bio'],
-          data['email'],
-          data['followers'],
-          data['following'],
-          data['profile'],
-          data['username'],
-        );
+        return Usermodel.fromDocument(userDoc);
       } else {
         throw Exception('User not found');
       }

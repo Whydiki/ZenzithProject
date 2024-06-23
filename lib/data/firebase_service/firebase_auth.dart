@@ -1,26 +1,10 @@
 import 'dart:io';
-
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:project/data/firebase_service/firestore.dart';
-import 'package:project/data/firebase_service/storage.dart';
-import 'package:project/util/exceptions.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Jika Anda ingin menyimpan data ke Firestore
+import 'package:firebase_storage/firebase_storage.dart'; // Jika Anda ingin menyimpan gambar ke Firebase Storage
 
 class Authentication {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      await _auth.signInWithEmailAndPassword(
-        email: email.trim(),
-        password: password.trim(),
-      );
-    } on FirebaseAuthException catch (e) {
-      throw Exception(e.message.toString());
-    }
-  }
 
   Future<void> signup({
     required String email,
@@ -30,43 +14,45 @@ class Authentication {
     required String bio,
     required File profile,
   }) async {
-    String url;
     try {
-      if (email.isNotEmpty &&
-          password.isNotEmpty &&
-          username.isNotEmpty &&
-          bio.isNotEmpty) {
-        if (password == passwordConfirme) {
-          // Create user with email and password
-          await _auth.createUserWithEmailAndPassword(
-            email: email.trim(),
-            password: password.trim(),
-          );
+      // Buat akun pengguna baru dengan email dan password
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-          // Upload profile image to storage
-          if (profile != File('')) {
-            url = await StorageMethod().uploadImageToStorage('Profile', profile);
-          } else {
-            url = '';
-          }
+      // Dapatkan UID pengguna yang baru dibuat
+      String uid = userCredential.user!.uid;
 
-          // Create user information in Firestore
-          await Firebase_Firestore().createUser(
-            email: email,
-            username: username,
-            bio: bio,
-            profile: url.isEmpty
-                ? 'https://firebasestorage.googleapis.com/v0/b/zenzith-a4145.appspot.com/o/person.png?alt=media&token=828ec7fc-1e64-49d4-9d56-ed989988ec79'
-                : url,
-          );
-        } else {
-          throw Exception('Password and confirm password should be the same');
-        }
-      } else {
-        throw Exception('Please enter all the fields');
-      }
+      // Unggah gambar profil ke Firebase Storage
+      String profileImageUrl = await _uploadProfileImage(uid, profile);
+
+      // Simpan data tambahan ke Firestore
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'username': username,
+        'bio': bio,
+        'profileImageUrl': profileImageUrl,
+      });
     } on FirebaseAuthException catch (e) {
-      throw Exception(e.message.toString());
+      throw Exception(e.message);
+    }
+  }
+
+  Future<String> _uploadProfileImage(String uid, File profile) async {
+    try {
+      // Tentukan path untuk gambar profil di Firebase Storage
+      Reference ref = FirebaseStorage.instance.ref().child('profile_images').child('$uid.jpg');
+
+      // Unggah file ke path yang telah ditentukan
+      UploadTask uploadTask = ref.putFile(profile);
+
+      // Tunggu hingga unggahan selesai dan dapatkan URL gambar
+      TaskSnapshot snapshot = await uploadTask;
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+
+      return downloadUrl;
+    } catch (e) {
+      throw Exception('Gagal mengunggah gambar profil: $e');
     }
   }
 }

@@ -11,7 +11,7 @@ class StorageMethod {
 
   Future<String> uploadImageToStorage(String name, File file) async {
     Reference ref =
-        _storage.ref().child(name).child(_auth.currentUser!.uid).child(uid);
+    _storage.ref().child(name).child(_auth.currentUser!.uid).child(uid);
 
     UploadTask uploadTask = ref.putFile(file);
     TaskSnapshot snapshot = await uploadTask;
