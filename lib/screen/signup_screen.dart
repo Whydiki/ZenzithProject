@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:project/data/firebase_service/firebase_auth.dart'; // Pastikan jalur ini benar
 import 'package:project/util/dialog.dart'; // Pastikan jalur ini benar
 import 'package:project/util/imagepicker.dart'; // Pastikan jalur ini benar
 import 'package:project/screen/login_screen.dart'; // Pastikan jalur ini benar
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -149,6 +149,10 @@ class _SignupScreenState extends State<SignupScreen> {
                       profile: profileImage ?? File(''),
                     );
                     // Navigate to main page or dashboard
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    );
                   } catch (e) {
                     dialogBuilder(context, e.toString());
                   }

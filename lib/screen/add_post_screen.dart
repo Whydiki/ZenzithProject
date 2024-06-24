@@ -6,7 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:location/location.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'home_screen.dart'; // Pastikan HomeScreen diimpor dengan benar
+import 'package:project/screen/home_screen.dart';
 
 class AddPostScreen extends StatefulWidget {
   const AddPostScreen({super.key});
